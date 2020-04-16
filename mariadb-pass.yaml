@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mariadb-pass # Modify Mariadb Instance Name
+  namespace: infra
+type: Opaque
+data:
+  # Root password (base64): admin
+  # echo -n "admin" | base64
+  password: YWRtaW4=
+  # echo -n "1f2d1e2e67df" | base64
+  # password: ck9iaW4wMDch

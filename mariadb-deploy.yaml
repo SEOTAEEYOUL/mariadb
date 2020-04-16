@@ -1,0 +1,106 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mariadb-infra
+  namespace: infra
+  labels:
+    app: mariadb-infra
+    release: mariadb-infra
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mariadb-infra
+        release: mariadb-infra
+        tier: backend
+    spec:
+    #   tolerations:
+    #   - key: "dedicated"
+    #     operator: "Exists"
+    #     effect: "NoSchedule"
+    #   affinity:
+    #     nodeAffinity:
+    #       requiredDuringSchedulingIgnoredDuringExecution:
+    #         nodeSelectorTerms:
+    #         - matchExpressions:
+    #           - key: tworld-direct
+    #             operator: In
+    #             values:
+    #             - "true"
+      containers:
+        # - image: mysql:5.6
+        # - image: twdd.icp.skt.com:8500/infra/mariadb:5.5.64
+        - image: harbor.apps.hcp.skcloude.io/infra/mariadb:5.5.64
+          name: mariadb
+          # args:
+          #   - --default_authentication_plugin=mysql_native_password
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-pass
+                  key: password
+          livenessProbe:
+            exec:
+              command: ["mysqladmin", "ping"]
+              # command:
+              # - mysqladmin
+              # - ping:
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command: ["bash", "-c", "mysql -uroot -p\"${MYSQL_ROOT_PASSWORD}\" -e 'show databases;'"]
+            initialDelaySeconds: 20
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+              subPath: mysql
+        # - image: twdd.icp.skt.com:8500/infra/prom/mysqld-exporter:v0.11.0
+        - image: harbor.apps.hcp.skcloude.io/infra/prom/mysqld-exporter:v0.12.1
+          imagePullPolicy: IfNotPresent
+          name: mysqld-exporter
+          env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mariadb-pass
+                key: password
+          - name: DATA_SOURCE_NAME
+            # value: root:@(localhost:3306)/
+            value: root:$(MYSQL_ROOT_PASSWORD)@(localhost:3306)/
+            # value: root:admin@(localhost:3306)/
+          ports:
+            - containerPort: 9104
+              name: mysqld-exporter
+        # - image: twdd.icp.skt.com:8500/infra/phpmyadmin/phpmyadmin:4.9
+        #   name: phpmyadmin
+        #   # args:
+        #   #   - --link=localhost:3306
+        #   ports:
+        #     - containerPort: 80
+        #       name: phpmyadmin
+        #   env:
+        #     - name: PMA_HOST
+        #       # value: mysql-service
+        #       # value: mariadb-infra.infra.svc.cluster.local
+        #       value: localhost
+        #     - name: PMA_PORT
+        #       value: "3306"
+        #     - name: PMA_ARBITRARY
+        #       value: "1"
+        #     - name: MYSQL_ROOT_PASSWORD
+        #       valueFrom:
+        #         secretKeyRef:
+        #           name: mariadb-pass
+        #           key: password
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mariadb-data-pvc

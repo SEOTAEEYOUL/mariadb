@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-infra
+  namespace: infra
+  labels:
+    app: mariadb-infra
+    release: mariadb-infra
+    tier: backend
+  annotations:
+   prometheus.io/scrape: 'true'
+   prometheus.io/port: "9104"
+spec:
+  ports:
+  - name: mariadb
+    port: 3306
+    protocol: TCP
+  - name: mysqld-exporter
+    port: 9104
+    protocol: TCP
+  # - name: phpmyadmin
+  #   port: 80
+  #   protocol: TCP
+  #   nodePort: 30002
+  selector:
+    app: mariadb-infra
+    tier: backend
+  # type: NodePort

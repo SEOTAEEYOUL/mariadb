@@ -1,0 +1,76 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: phpmyadmin
+  namespace: infra
+  labels:
+    app: phpmyadmin
+    release: mariadb-infra
+    tier: frontend
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin
+        release: mariadb-infra
+        tier: frontend
+    spec:
+    #   tolerations:
+    #   - key: "dedicated"
+    #     operator: "Exists"
+    #     effect: "NoSchedule"
+    #   affinity:
+    #     nodeAffinity:
+    #       requiredDuringSchedulingIgnoredDuringExecution:
+    #         nodeSelectorTerms:
+    #         - matchExpressions:
+    #           - key: tworld-direct
+    #             operator: In
+    #             values:
+    #             - "true"
+      containers:
+        # - image: twdd.icp.skt.com:8500/infra/phpmyadmin/phpmyadmin:4.9
+        - image: harbor.apps.hcp.skcloude.io/infra/phpmyadmin/phpmyadmin:5.0.2
+          name: phpmyadmin
+          # args:
+          #   - --link=localhost:3306
+          ports:
+            - containerPort: 80
+              name: phpmyadmin
+          env:
+            - name: PMA_HOST
+              # value: mysql-service
+              value: mariadb-infra.infra.svc.cluster.local
+              # value: localhost
+            - name: PMA_PORT
+              value: "3306"
+            # - name: PMA_ARBITRARY
+            #   value: "1"
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-pass
+                  key: password
+          # livenessProbe:
+          #   exec:
+          #     command: ["mysqladmin", "ping"]
+          #     # command:
+          #     # - mysqladmin
+          #     # - ping:
+          #   initialDelaySeconds: 30
+          #   timeoutSeconds: 5
+          # readinessProbe:
+          #   exec:
+          #     command: ["bash", "-c", "mysql -uroot -p\"${MYSQL_ROOT_PASSWORD}\" -e 'show databases;'"]
+          #   initialDelaySeconds: 20
+          # volumeMounts:
+          #   - name: mysql-persistent-storage
+          #     mountPath: /var/lib/mysql
+          #     subPath: mysql
+      # volumes:
+      #   - name: mysql-persistent-storage
+      #     persistentVolumeClaim:
+      #       claimName: mariadb-data-pvc
