@@ -1,4 +1,5 @@
 # mariadb
+<pre>
 [PhpMyAdmin]
 Environment variables summary
   PMA_ARBITRARY - when set to 1 connection to the arbitrary server will be allowed
@@ -21,3 +22,4 @@ kubectl -f mariadb-deploy.yaml
 kubectl -f mariadb-svc.yaml
 kubectl -f phpmyadmin-deploy.yaml
 kubectl -f phpmyadmin-svc.yaml 
+</pre>
