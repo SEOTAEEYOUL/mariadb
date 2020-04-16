@@ -20,4 +20,4 @@ kubectl -f mariadb-pass.yaml
 kubectl -f mariadb-deploy.yaml
 kubectl -f mariadb-svc.yaml
 kubectl -f phpmyadmin-deploy.yaml
-kubectl -f phpmyadmin-svc.yaml
+kubectl -f phpmyadmin-svc.yaml 
