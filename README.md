@@ -24,5 +24,5 @@ kubectl -f phpmyadmin-deploy.yaml
 kubectl -f phpmyadmin-svc.yaml 
 
 [Grafana Dashboard]
-mariadb-dashboard.json
+mariadb_dashboard.json
 </pre>
